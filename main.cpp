@@ -494,21 +494,20 @@ public:
 			return result2;
 		});
 	}
-	// Parser<QList<T>> *Many() {
-	// 	return ParserFrom<QList<T>>([this](Context &ctx) -> Result<QList<T>> {
-	// 	QList<T> ret;
-	// 	bool ok = true;
-	// 	do {
-	// 		auto result = this->operator()(ctx);
-	// 		if (std::holds_alternative<Failure>(result)) {
-	// 		ok = false;
-	// 		} else {
-	// 		ret << std::get<T>(result);
-	// 		}
-	// 	} while (ok);
-	// 	return NewSuccess(ret);
-	// 	});
-	// }
+	Parser<std::list<T>> *many() {
+		return parser_from<std::list<T>>([this](Context &ctx) -> ParserResult<std::list<T>> {
+			std::list<T> ret;
+
+			while (true) {
+				auto result = parse(ctx);
+				if (holds_failure(result)) {
+					return ParserResult<std::list<T>>(ret);
+				} else {
+					ret.push_back(std::get<T>(result));
+				}
+			}
+		});
+	}
 	// Parser<QList<T>> *Repeated(uint n) {
 	// 	Q_ASSERT(n > 0);
 	// 	return ParserFrom<QList<T>>([this, n](Context &ctx) -> Result<QList<T>> {
@@ -715,11 +714,15 @@ int main(int argc, rune *argv[])
 		ident, colon->between(spaces), to_newline
 	);
 
+	let anything = statement;
+
+	let file = anything->between(spaces)->many();
+
 	FileSet fs;
 	fs.add_file(new File(argv[1]));
 
 	Context ctx(&fs);
-	let result = statement->parse(ctx);
+	let result = file->parse(ctx);
 	if (holds_failure(result)) {
 		let failure = std::get<Error>(result);
 		let [line, col] = fs.file_for_pos(failure.position)->pos_to_line_col(fs.map_to_local_file(failure.position));
@@ -752,8 +755,6 @@ int main(int argc, rune *argv[])
 
 		return 0;
 	}
-	let unwrapped = std::get<Statement>(result);
-	std::cout << unwrapped.lhs << ": " << unwrapped.rhs << std::endl;
 
 	return 0;
 }
