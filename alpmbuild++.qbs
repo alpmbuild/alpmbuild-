@@ -2,7 +2,7 @@ CppApplication {
 	name: "alpmbuild++"
 
 	cpp.cppFlags: ['-Werror=return-type']
-	cpp.cxxLanguageVersion: "c++17"
+	cpp.cxxLanguageVersion: "c++20"
 
 	files: [
 		"main.cpp",
