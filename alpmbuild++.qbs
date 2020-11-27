@@ -1,4 +1,4 @@
-CppApplication {
+QtApplication {
 	name: "alpmbuild++"
 
 	cpp.cppFlags: ['-Werror=return-type']
